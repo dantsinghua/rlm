@@ -52,7 +52,17 @@ def get_client(
         from rlm.clients.azure_openai import AzureOpenAIClient
 
         return AzureOpenAIClient(**backend_kwargs)
+    elif backend == "doubao":
+        from rlm.clients.openai_compatible import OpenAICompatibleClient
+
+        # Set default base_url for Doubao/Volcengine Ark
+        backend_kwargs.setdefault("base_url", "https://ark.cn-beijing.volces.com/api/v3")
+        return OpenAICompatibleClient(**backend_kwargs)
+    elif backend == "openai_compatible":
+        from rlm.clients.openai_compatible import OpenAICompatibleClient
+
+        return OpenAICompatibleClient(**backend_kwargs)
     else:
         raise ValueError(
-            f"Unknown backend: {backend}. Supported backends: ['openai', 'vllm', 'portkey', 'openrouter', 'litellm', 'anthropic', 'azure_openai', 'gemini']"
+            f"Unknown backend: {backend}. Supported backends: ['openai', 'vllm', 'portkey', 'openrouter', 'litellm', 'anthropic', 'azure_openai', 'gemini', 'doubao', 'openai_compatible']"
         )

@@ -1,0 +1,120 @@
+# RLM Configuration File
+# All models are OpenAI API compatible - use base_url to switch providers
+
+# ============================================================
+# Providers - Define base URLs and authentication
+# ============================================================
+providers:
+  openai:
+    base_url: https://api.openai.com/v1
+    api_key_env: OPENAI_API_KEY
+
+  doubao:  # Doubao / Volcengine Ark
+    base_url: https://ark.cn-beijing.volces.com/api/v3
+    api_key_env: ARK_API_KEY
+
+  azure:
+    base_url: ${AZURE_OPENAI_ENDPOINT}/openai/deployments
+    api_key_env: AZURE_OPENAI_API_KEY
+    api_version: "2024-02-01"
+
+  local_vllm:  # Local vLLM server
+    base_url: http://localhost:8000/v1
+    api_key_env: ""
+
+# ============================================================
+# Models - Define available models with their parameters
+# ============================================================
+models:
+  # OpenAI Models
+  gpt-4o:
+    provider: openai
+    model_name: gpt-4o
+    params:
+      temperature: 0.7
+      max_tokens: 8192
+      top_p: 0.95
+
+  gpt-4o-mini:
+    provider: openai
+    model_name: gpt-4o-mini
+    params:
+      temperature: 0.8
+      max_tokens: 4096
+
+  # Doubao Models (Volcengine Ark)
+  doubao-seed-1.6:
+    provider: doubao
+    model_name: doubao-seed-1-6-251015
+    params:
+      temperature: 0.7
+      max_tokens: 32768
+      top_p: 0.95
+    extra_body:
+      thinking:
+        type: auto
+
+  doubao-seed-1.8:
+    provider: doubao
+    model_name: doubao-seed-1.8
+    params:
+      temperature: 0.6
+      max_tokens: 32768
+
+  doubao-code:
+    provider: doubao
+    model_name: doubao-seed-code
+    params:
+      temperature: 0.3
+      max_tokens: 16384
+
+  # Local Models (vLLM)
+  llama-local:
+    provider: local_vllm
+    model_name: meta-llama/Llama-3.1-8B-Instruct
+    params:
+      temperature: 0.7
+      max_tokens: 4096
+
+# ============================================================
+# Roles - Map RLM stages to models
+# ============================================================
+roles:
+  # Main iteration model (_completion_turn)
+  completion_turn:
+    model: gpt-4o
+    fallback: doubao-seed-1.6
+
+  # Sub-query model (llm_query in REPL)
+  sub_query:
+    model: gpt-4o-mini
+    fallback: doubao-seed-1.6
+
+  # Default answer (_default_answer - when max iterations reached)
+  default_answer:
+    model: gpt-4o
+
+  # Fallback answer (_fallback_answer - when max depth reached)
+  fallback_answer:
+    model: gpt-4o
+
+# ============================================================
+# Iteration Diversity - Rotate models during iterations
+# ============================================================
+iteration_diversity:
+  enabled: false
+  strategy: round_robin  # round_robin, random, weighted
+  models:
+    - gpt-4o
+    - doubao-seed-1.6
+  weights: [0.6, 0.4]
+
+# ============================================================
+# Defaults - Default parameters for all models
+# ============================================================
+defaults:
+  temperature: 0.7
+  max_tokens: 4096
+  top_p: 0.95
+  timeout: 300
+  max_retries: 3

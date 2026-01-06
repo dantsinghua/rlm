@@ -3,9 +3,10 @@ from types import ModuleType
 from typing import Any, Literal
 
 ClientBackend = Literal[
-    "openai", "portkey", "openrouter", "vllm", "litellm", "anthropic", "azure_openai", "gemini"
+    "openai", "portkey", "openrouter", "vllm", "litellm", "anthropic", "azure_openai", "gemini",
+    "doubao", "openai_compatible"  # Added for config-driven mode
 ]
-EnvironmentType = Literal["local", "prime", "modal"]
+EnvironmentType = Literal["local", "prime", "modal", "docker"]
 
 
 def _serialize_value(value: Any) -> Any:
